@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">Football Schedule</string>
+    <string name="tab_text_1">Prev. Match</string>
+    <string name="tab_text_2">Next Match</string>
+    <string name="tab_text_3">Fav. Match</string>
+    <string name="action_settings">Settings</string>
+    <string name="section_format">Hello World from section: %1$d</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="no_fav">TIDAK ADA PERTANDINGAN FAVORIT</string>
+</resources>
