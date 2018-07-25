@@ -58,8 +58,7 @@ class PreviousFragment : Fragment() {
                     recyclerViewPrevious.layoutManager = LinearLayoutManager(activity)
                     recyclerViewPrevious.adapter = PreviousAdapter(activity, eventList, {
                         val i = Intent(context, DetailActivity::class.java)
-                        i.putExtra("param", "previous")
-                        i.putExtra("event", it)
+                        i.putExtra("event_id", it.idEvent)
                         startActivity(i)
                     })
                     Log.d(TAG, eventList.toString())

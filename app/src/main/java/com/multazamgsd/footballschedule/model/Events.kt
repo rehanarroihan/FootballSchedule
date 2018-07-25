@@ -1,7 +1,6 @@
 package com.multazamgsd.footballschedule.model
 
 import com.google.gson.annotations.SerializedName
-import java.io.Serializable
 
 data class Events(
         @SerializedName("idEvent")
@@ -39,5 +38,4 @@ data class Events(
 
         @SerializedName("strAwayGoalDetails")
         var strAwayGoalDetails: String
-
-) : Serializable
+)

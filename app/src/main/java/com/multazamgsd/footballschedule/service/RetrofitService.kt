@@ -14,6 +14,9 @@ interface RetrofitService {
     @GET("/api/v1/json/1/eventsnextleague.php")
     fun eventsNextMatch(@Query("id") id: String): Call<NextResponse>
 
+    @GET("/api/v1/json/1/lookupevent.php")
+    fun lookupEvent(@Query("id") id: String): Call<PreviousResponse>
+
     @GET("/api/v1/json/1/lookupteam.php")
     fun teamDetail(@Query("id") id: String): Call<TeamDetailResponse>
 }

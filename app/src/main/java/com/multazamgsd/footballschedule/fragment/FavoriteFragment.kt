@@ -48,15 +48,16 @@ class FavoriteFragment : Fragment() {
             if (mList.isNotEmpty()) {
                 tvFavoriteNull.visibility = View.GONE
                 recyclerViewFav.layoutManager = LinearLayoutManager(activity)
+                recyclerViewFav.visibility = View.VISIBLE
                 Log.d(TAG, mList.toString())
                 recyclerViewFav.adapter = FavoriteAdapter(activity, mList) {
                     val i = Intent(context, DetailActivity::class.java)
-                    i.putExtra("param", "favorite")
-                    i.putExtra("event", it)
+                    i.putExtra("event_id", it.event_id)
                     startActivity(i)
                 }
                 swipeFavorite.isRefreshing = false
             } else {
+                recyclerViewFav.visibility = View.GONE
                 tvFavoriteNull.visibility = View.VISIBLE
                 Log.d(TAG, "mList is empty")
                 swipeFavorite.isRefreshing = false

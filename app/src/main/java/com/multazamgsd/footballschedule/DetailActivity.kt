@@ -7,13 +7,11 @@ import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import android.widget.Toast
 import com.bumptech.glide.Glide
 import com.multazamgsd.footballschedule.R.id.action_fav
 import com.multazamgsd.footballschedule.R.id.action_unfav
-import com.multazamgsd.footballschedule.model.Events
-import com.multazamgsd.footballschedule.model.Favorite
-import com.multazamgsd.footballschedule.model.TeamDetailResponse
-import com.multazamgsd.footballschedule.model.Teams
+import com.multazamgsd.footballschedule.model.*
 import com.multazamgsd.footballschedule.service.Client
 import com.multazamgsd.footballschedule.service.RetrofitService
 import kotlinx.android.synthetic.main.activity_detail.*
@@ -25,13 +23,15 @@ import retrofit2.Response
 
 class DetailActivity : AppCompatActivity() {
     private var TAG: String = "DetailActivity"
-    private lateinit var events: Events
-    private lateinit var favorite: Favorite
+    private lateinit var snackbar: Snackbar
+    private val mRetrofit: RetrofitService? = Client.FetchService()
+    private lateinit var event: Events
+
     private var homeBadge: String = ""
     private var awayBadge: String = ""
     private var homeGoal: String = ""
     private var awayGoal: String = ""
-    private lateinit var snackbar: Snackbar
+    private var event_id: String = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -40,34 +40,40 @@ class DetailActivity : AppCompatActivity() {
         supportActionBar?.setDisplayShowHomeEnabled(true)
         title = "Match Detail"
 
-        var detailParam: String = ""
-        if (detailParam === "previous") {
-            events = intent?.extras?.get("event") as Events
-            initPrevious()
-        } else if (detailParam === "favorite") {
-            favorite = intent?.extras?.get("favorite") as Favorite
-            initFavorite()
-        }
+        event_id = intent.extras.get("event_id").toString()
+        initData()
     }
 
-    private fun initPrevious() {
-        tvClub.text = events.strEvent
-        tvScore.text = "${events.intHomeScore} : ${events.intAwayScore}"
-        tvDate.text = events.strDate
-        events.strHomeGoalDetails.split(";").toTypedArray().forEach {
-            homeGoal += it + "\n"
-        }
-        events.strAwayGoalDetails.split(";").toTypedArray().forEach {
-            awayGoal += it + "\n"
-        }
-        tvHomeGoal.text = homeGoal
-        tvAwayGoal.text = awayGoal
+    private fun initData() {
+        mRetrofit?.lookupEvent(event_id)?.enqueue(object : retrofit2.Callback<PreviousResponse> {
+            override fun onFailure(call: Call<PreviousResponse>?, t: Throwable?) {
+                Toast.makeText(applicationContext, "Gagal memuat data", Toast.LENGTH_LONG).show()
+            }
 
-        val teamID = arrayOf(events.idHomeTeam, events.idAwayTeam)
+            override fun onResponse(call: Call<PreviousResponse>?, response: Response<PreviousResponse>?) {
+                event = response!!.body()!!.events[0]
+                tvClub.text = event.strEvent
+                tvScore.text = "${event.intHomeScore} : ${event.intAwayScore}"
+                tvDate.text = event.strDate
+                event.strHomeGoalDetails.split(";").toTypedArray().forEach {
+                    homeGoal += it + "\n"
+                }
+                event.strAwayGoalDetails.split(";").toTypedArray().forEach {
+                    awayGoal += it + "\n"
+                }
+                tvHomeGoal.text = homeGoal
+                tvAwayGoal.text = awayGoal
+
+                loadTeamBadge()
+            }
+        })
+    }
+
+    private fun loadTeamBadge() {
+        val teamID = arrayOf(event.idHomeTeam, event.idAwayTeam)
         val stringTeamBadge = arrayOf(homeBadge, awayBadge)
         val teamBadge = arrayOf(ivHomeTeam, ivAwayTeam)
         for (i in 0 until teamID.size) {
-            val mRetrofit: RetrofitService? = Client.FetchService()
             mRetrofit?.teamDetail(teamID[i])?.enqueue(object : retrofit2.Callback<TeamDetailResponse> {
                 override fun onFailure(call: Call<TeamDetailResponse>?, t: Throwable?) {
                     Log.d(TAG, t.toString())
@@ -83,10 +89,6 @@ class DetailActivity : AppCompatActivity() {
 
             })
         }
-    }
-
-    private fun initFavorite() {
-
     }
 
     override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
@@ -106,7 +108,7 @@ class DetailActivity : AppCompatActivity() {
     private fun isFavorite(): Boolean {
         var count: Int = 0
         database.use {
-            select("TABLE_FAVORITE").whereArgs("(EVENT_ID = ${events.idEvent})")
+            select("TABLE_FAVORITE").whereArgs("(EVENT_ID = ${event_id})")
                     .exec {
                         count = this.count
                     }
@@ -119,16 +121,11 @@ class DetailActivity : AppCompatActivity() {
         try {
             database.use {
                 insert(Favorite.TABLE_FAVORITE,
-                        Favorite.EVENT_ID to events.idEvent,
-                        Favorite.EVENT_TITLE to events.strEvent,
-                        Favorite.EVENT_SCORE to "${events.intHomeScore} : ${events.intAwayScore}",
-                        Favorite.EVENT_DTE to events.strDate,
-                        Favorite.TEAM_HOME_BADGE to homeBadge,
-                        Favorite.TEAM_AWAY_BADGE to awayBadge,
-                        Favorite.TEAM_HOME_NAME to events.strHomeTeam,
-                        Favorite.TEAM_AWAY_NAME to events.strAwayTeam,
-                        Favorite.HOME_GOAL to events.strHomeGoalDetails,
-                        Favorite.AWAY_GOAL to events.strAwayGoalDetails)
+                        Favorite.EVENT_ID to event_id,
+                        Favorite.EVENT_DTE to event.strDate,
+                        Favorite.TEAM_HOME_NAME to event.strHomeTeam,
+                        Favorite.TEAM_AWAY_NAME to event.strAwayTeam,
+                        Favorite.EVENT_SCORE to "${event.intHomeScore} : ${event.intAwayScore}")
             }
             snackbar = Snackbar.make(llDetail, "Added to Favorite", Snackbar.LENGTH_LONG)
             snackbar.show()
@@ -142,7 +139,7 @@ class DetailActivity : AppCompatActivity() {
     private fun deleteFromFavorite() {
         database.use {
             try {
-                delete("TABLE_FAVORITE", "EVENT_ID = ${events.idEvent}")
+                delete("TABLE_FAVORITE", "EVENT_ID = ${event_id}")
                 snackbar = Snackbar.make(llDetail, "Deleted from Favorite", Snackbar.LENGTH_LONG)
                 snackbar.show()
                 invalidateOptionsMenu()
