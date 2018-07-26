@@ -26,8 +26,16 @@ class FavoriteAdapter(private val context: Context?, private val fav: List<Favor
         private val matchDate = view.findViewById<TextView>(R.id.textViewMatchDate)
 
         fun bindItem(fav: Favorite, listener: (Favorite) -> Unit) {
-            matchTitle.text = "${fav.team_home_name} ${fav.event_score} ${fav.team_away_name}"
-            matchDate.text = fav.event_dte
+            if (fav.event_score == "null : null") {
+                matchTitle.text = "${fav.team_home_name} vs ${fav.team_away_name}"
+            } else {
+                matchTitle.text = "${fav.team_home_name} ${fav.event_score} ${fav.team_away_name}"
+            }
+            if (fav.event_dte == null || fav.event_dte == "") {
+                matchDate.text = "Soon"
+            } else {
+                matchDate.text = fav.event_dte
+            }
             itemView.setOnClickListener { listener(fav) }
         }
     }

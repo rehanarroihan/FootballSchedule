@@ -30,7 +30,11 @@ class NextAdapter(private val context: Context?, private val prev: List<Events>,
 
         fun bindItem(prev: Events, listener: (Events) -> Unit) {
             matchTitle.text = prev.strEvent
-            matchDate.text = prev.strDate
+            if (prev.strDate == null || prev.strDate == "") {
+                matchDate.text = "Soon"
+            } else {
+                matchDate.text = prev.strDate
+            }
             itemView.setOnClickListener { listener(prev) }
         }
     }

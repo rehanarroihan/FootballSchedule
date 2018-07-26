@@ -1,5 +1,6 @@
 package com.multazamgsd.footballschedule.fragment
 
+import android.content.Intent
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v7.widget.LinearLayoutManager
@@ -7,6 +8,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import com.multazamgsd.footballschedule.DetailActivity
 import com.multazamgsd.footballschedule.R
 import com.multazamgsd.footballschedule.adapter.NextAdapter
 import com.multazamgsd.footballschedule.model.Events
@@ -29,7 +31,7 @@ class NextFragment : Fragment() {
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-        val mRetrofit: RetrofitService? = Client.FetchService()
+        val mRetrofit: RetrofitService? = Client.fetchService()
         mRetrofit?.eventsNextMatch("4328")?.enqueue(object : Callback<NextResponse> {
             override fun onFailure(call: Call<NextResponse>?, t: Throwable?) {
                 Log.d(TAG, t.toString())
@@ -39,7 +41,9 @@ class NextFragment : Fragment() {
                 var eventList: List<Events> = response?.body()!!.events
                 recyclerViewNext.layoutManager = LinearLayoutManager(activity)
                 recyclerViewNext.adapter = NextAdapter(activity, eventList) {
-
+                    val i = Intent(context, DetailActivity::class.java)
+                    i.putExtra("event_id", it.idEvent)
+                    startActivity(i)
                 }
             }
         })

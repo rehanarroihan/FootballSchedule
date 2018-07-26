@@ -45,7 +45,7 @@ class PreviousFragment : Fragment() {
 
     private fun getPreviousMatchData() {
         swipePrevious.isRefreshing = true
-        val mRetrofit: RetrofitService? = Client.FetchService()
+        val mRetrofit: RetrofitService? = Client.fetchService()
         mRetrofit?.eventsPastLeague("4335")?.enqueue(object : Callback<PreviousResponse> {
             override fun onFailure(call: Call<PreviousResponse>?, t: Throwable?) {
                 Log.d(TAG, t.toString())
@@ -56,11 +56,11 @@ class PreviousFragment : Fragment() {
                 var eventList: List<Events> = response?.body()!!.events
                 if (eventList.isNotEmpty()) {
                     recyclerViewPrevious.layoutManager = LinearLayoutManager(activity)
-                    recyclerViewPrevious.adapter = PreviousAdapter(activity, eventList, {
+                    recyclerViewPrevious.adapter = PreviousAdapter(activity, eventList) {
                         val i = Intent(context, DetailActivity::class.java)
                         i.putExtra("event_id", it.idEvent)
                         startActivity(i)
-                    })
+                    }
                     Log.d(TAG, eventList.toString())
                 } else {
                     val snackbar: Snackbar

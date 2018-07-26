@@ -24,7 +24,7 @@ import retrofit2.Response
 class DetailActivity : AppCompatActivity() {
     private var TAG: String = "DetailActivity"
     private lateinit var snackbar: Snackbar
-    private val mRetrofit: RetrofitService? = Client.FetchService()
+    private val mRetrofit: RetrofitService? = Client.fetchService()
     private lateinit var event: Events
 
     private var homeBadge: String = ""
@@ -53,14 +53,27 @@ class DetailActivity : AppCompatActivity() {
             override fun onResponse(call: Call<PreviousResponse>?, response: Response<PreviousResponse>?) {
                 event = response!!.body()!!.events[0]
                 tvClub.text = event.strEvent
-                tvScore.text = "${event.intHomeScore} : ${event.intAwayScore}"
+                if (event.intHomeScore === null || event.intHomeScore === "null") {
+                    tvScore.text = ""
+                } else {
+                    tvScore.text = "${event.intHomeScore} : ${event.intAwayScore}"
+                }
                 tvDate.text = event.strDate
-                event.strHomeGoalDetails.split(";").toTypedArray().forEach {
-                    homeGoal += it + "\n"
+                if (event.strHomeGoalDetails !== null) {
+                    event.strHomeGoalDetails.split(";").toTypedArray().forEach {
+                        homeGoal += it + "\n"
+                    }
+                } else {
+                    homeGoal = ""
                 }
-                event.strAwayGoalDetails.split(";").toTypedArray().forEach {
-                    awayGoal += it + "\n"
+                if (event.strAwayGoalDetails !== null) {
+                    event.strAwayGoalDetails.split(";").toTypedArray().forEach {
+                        awayGoal += it + "\n"
+                    }
+                } else {
+                    awayGoal = ""
                 }
+
                 tvHomeGoal.text = homeGoal
                 tvAwayGoal.text = awayGoal
 
